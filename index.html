@@ -16,6 +16,7 @@
             --source-height: 48vh;
         }
 
+        /* Bloqueio de Scroll e Zoom */
         html, body {
             background-color: var(--bg-soft);
             height: 100vh;
@@ -30,7 +31,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Remove setas de inputs numéricos */
+        /* Remover setas de inputs numéricos */
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -41,6 +42,7 @@
             appearance: textfield;
         }
 
+        /* Container de Páginas */
         .pages-container {
             display: flex;
             width: 200%;
@@ -56,6 +58,7 @@
             position: relative;
         }
 
+        /* Seção Superior */
         .source-section {
             position: relative;
             height: var(--source-height);
@@ -92,10 +95,10 @@
             padding: 20px;
             border-radius: 28px;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
-            transition: opacity 0.4s;
             border: 1px solid rgba(255,255,255,0.5);
         }
 
+        /* Gota Animada */
         .drop {
             position: absolute;
             top: var(--source-height); 
@@ -119,6 +122,7 @@
             100% { transform: translateX(-50%) scale(3, 0.2); top: calc(var(--source-height) + var(--drop-dist) + 5px); opacity: 0; filter: blur(2px); }
         }
 
+        /* Tanque */
         .tank-section {
             flex: 1;
             display: flex;
@@ -170,6 +174,7 @@
             100% { transform: translateY(23px) scaleY(1); border-radius: 0; }
         }
 
+        /* Resumo Ancorado */
         .summary-anchor {
             position: fixed;
             bottom: 60px; 
@@ -184,6 +189,7 @@
             z-index: 50;
         }
 
+        /* Paginação */
         .pagination-nav {
             position: fixed;
             bottom: 0;
@@ -212,6 +218,7 @@
             border-radius: 10px;
         }
 
+        /* UI Estilo Mobile */
         input {
             background-color: white;
             border: 2px solid #eef2ff;
@@ -273,17 +280,7 @@
             border: 1px solid #f1f5f9;
         }
 
-        .loading-overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--bg-soft);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-            transition: opacity 0.5s;
-        }
-
+        /* Efeitos de impacto */
         .ripple {
             position: absolute;
             top: 0;
@@ -316,21 +313,14 @@
 </head>
 <body>
 
-<div id="loadingOverlay" class="loading-overlay">
-    <div class="flex flex-col items-center gap-3">
-        <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
-        <p id="loadingText" class="font-bold text-slate-400 text-center px-6">Preparando cofrinho...</p>
-    </div>
-</div>
-
 <div id="drop" class="drop"></div>
 
 <div class="pages-container" id="pagesContainer">
-    <!-- PÁGINA 1 -->
+    <!-- PÁGINA 1: COFRINHO -->
     <div class="page" id="pageCofrinho">
         <div class="source-section">
             <div class="source-liquid-bg" id="sourceLiquid"></div>
-            <div class="form-card" id="formCard">
+            <div class="form-card">
                 <h1 class="text-base font-bold mb-2 text-center text-slate-800">Registrar Gasto 🫧</h1>
                 <div class="mb-2">
                     <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest ml-1">Descrição</p>
@@ -340,7 +330,7 @@
                     <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest ml-1">Valor (R$)</p>
                     <input type="number" id="valueInput" value="30">
                 </div>
-                <button id="fillBtn" class="btn-friendly" onclick="registerExpense()">Soltar Gota</button>
+                <button id="fillBtn" class="btn-friendly" onclick="handleRegisterClick()">Soltar Gota</button>
             </div>
         </div>
 
@@ -355,23 +345,23 @@
             </div>
             
             <div class="flex items-end justify-center gap-2 mt-4 px-6 w-full">
-                <span id="warningBadge" class="status-badge bg-blue-100 text-blue-600">Sincronizando...</span>
+                <span id="warningBadge" class="status-badge bg-blue-100 text-blue-600">Calculando...</span>
                 <div class="flex flex-col">
                     <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1">Meta</p>
-                    <input type="number" id="limitInput" value="1000" onchange="updateLimitFirestore()" class="limit-input-small">
+                    <input type="number" id="limitInput" value="1000" onchange="handleLimitChange()" class="limit-input-small">
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- PÁGINA 2 -->
+    <!-- PÁGINA 2: EXTRATO -->
     <div class="page" id="pageExtrato">
         <header class="p-6 pb-2 shrink-0">
             <h2 class="text-2xl font-bold text-slate-800">Extrato 📜</h2>
-            <p class="text-slate-500 text-sm">Suas movimentações</p>
+            <p class="text-slate-500 text-sm">Pingos salvos no seu celular</p>
         </header>
         <div class="history-scroll" id="expenseList">
-            <p class="text-slate-400 text-center py-10 text-sm italic">Nenhum gasto ainda...</p>
+            <p class="text-slate-400 text-center py-10 text-sm italic">Nenhum gasto registrado.</p>
         </div>
     </div>
 </div>
@@ -392,22 +382,17 @@
     <div class="dot" id="dot1" onclick="switchPage(1)"></div>
 </nav>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+<script>
+    // Estado do App
+    let appState = {
+        limit: 1000,
+        expenses: []
+    };
 
-    // Fallback variables
-    const firebaseConfig = JSON.parse(__firebase_config || '{}');
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-cofrinho';
-    
-    let db, auth;
-    let limit = 1000;
-    let spent = 0;
-    let expenses = [];
-    let userId = null;
     let currentPage = 0;
+    const STORAGE_KEY = 'meu_cofrinho_data';
 
+    // Elementos DOM
     const elements = {
         drop: document.getElementById('drop'),
         liquid: document.getElementById('liquidLevel'),
@@ -422,87 +407,42 @@
         percText: document.getElementById('percentageText'),
         badge: document.getElementById('warningBadge'),
         list: document.getElementById('expenseList'),
-        loading: document.getElementById('loadingOverlay')
+        descInput: document.getElementById('descInput'),
+        valueInput: document.getElementById('valueInput')
     };
 
     const tankHeight = 140; 
     const visualGap = 35;
 
-    // Timeout de segurança: se não carregar em 4s, libera a tela
-    const safetyTimeout = setTimeout(() => {
-        if (elements.loading.style.display !== 'none') {
-            console.warn("Safety timeout reached. Entering local mode.");
-            hideLoading();
-        }
-    }, 4000);
+    // --- LOGICA DE PERSISTÊNCIA LOCAL ---
 
-    function hideLoading() {
-        elements.loading.style.opacity = '0';
-        setTimeout(() => elements.loading.style.display = 'none', 500);
-        clearTimeout(safetyTimeout);
+    function loadLocalStorage() {
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        if (savedData) {
+            appState = JSON.parse(savedData);
+            // Converter datas de string para objeto Date
+            appState.expenses.forEach(e => e.date = new Date(e.date));
+        }
+        elements.limitInput.value = appState.limit;
         refreshUI();
+        renderHistory();
     }
 
-    // Inicialização Protegida
-    async function startApp() {
-        try {
-            const app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
-
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    userId = user.uid;
-                    setupSync();
-                    hideLoading();
-                }
-            });
-        } catch (error) {
-            console.error("Firebase init failed:", error);
-            hideLoading(); // Libera para uso mesmo com erro
-        }
+    function saveLocalStorage() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
     }
 
-    function setupSync() {
-        if (!userId) return;
-
-        const limitRef = doc(db, 'artifacts', appId, 'users', userId, 'settings', 'config');
-        onSnapshot(limitRef, (snap) => {
-            if (snap.exists()) {
-                limit = snap.data().limit || 1000;
-                elements.limitInput.value = limit;
-                refreshUI();
-            } else {
-                setDoc(limitRef, { limit: 1000 });
-            }
-        });
-
-        const expensesRef = collection(db, 'artifacts', appId, 'users', userId, 'expenses');
-        onSnapshot(expensesRef, (snap) => {
-            expenses = snap.docs.map(doc => ({
-                ...doc.data(),
-                date: doc.data().date?.toDate() || new Date()
-            })).sort((a, b) => b.date - a.date);
-            
-            spent = expenses.reduce((acc, curr) => acc + curr.val, 0);
-            refreshUI();
-            renderHistory();
-        });
-    }
+    // --- LOGICA DA INTERFACE ---
 
     function refreshUI() {
-        const percentage = (spent / limit) * 100;
-        const available = Math.max(0, limit - spent);
+        const spent = appState.expenses.reduce((acc, curr) => acc + curr.val, 0);
+        const percentage = (spent / appState.limit) * 100;
+        const available = Math.max(0, appState.limit - spent);
 
         elements.totalText.innerText = `R$ ${spent.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
         elements.availableText.innerText = `R$ ${available.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
         elements.percText.innerText = `${Math.round(percentage)}%`;
+        
         elements.liquid.style.height = `${Math.min(100, percentage)}%`;
 
         if (percentage >= 100) {
@@ -520,29 +460,31 @@
         }
     }
 
-    window.updateLimitFirestore = async () => {
-        const newLimit = parseFloat(elements.limitInput.value);
-        if (newLimit > 0 && userId) {
-            const ref = doc(db, 'artifacts', appId, 'users', userId, 'settings', 'config');
-            await setDoc(ref, { limit: newLimit }, { merge: true });
+    function handleLimitChange() {
+        const val = parseFloat(elements.limitInput.value);
+        if (val > 0) {
+            appState.limit = val;
+            saveLocalStorage();
+            refreshUI();
         }
-    };
+    }
 
-    window.registerExpense = async () => {
-        const desc = document.getElementById('descInput').value;
-        const val = parseFloat(document.getElementById('valueInput').value);
+    function handleRegisterClick() {
+        const desc = elements.descInput.value;
+        const val = parseFloat(elements.valueInput.value);
 
         if (!desc || isNaN(val) || val <= 0) return;
 
         elements.fillBtn.disabled = true;
         elements.sourceLiquid.style.height = '0%';
 
-        setTimeout(async () => {
-            const currentPercentage = (spent / limit) * 100;
+        setTimeout(() => {
+            const spentBefore = appState.expenses.reduce((acc, curr) => acc + curr.val, 0);
+            const currentPercentage = (spentBefore / appState.limit) * 100;
             const currentHeightPx = (tankHeight * Math.min(100, currentPercentage)) / 100;
             const dropDistValue = visualGap + (tankHeight - currentHeightPx);
             
-            const strength = Math.min(2.0, (val / limit) * 15);
+            const strength = Math.min(2.0, (val / appState.limit) * 15);
             document.documentElement.style.setProperty('--impact-strength', strength);
             document.documentElement.style.setProperty('--drop-dist', `${dropDistValue}px`);
 
@@ -550,39 +492,39 @@
             elements.drop.offsetHeight; 
             elements.drop.style.animation = 'drop-realistic-fall 0.7s cubic-bezier(0.5, 0, 0.7, 0.3) forwards';
 
-            setTimeout(async () => {
-                if (userId) {
-                    const ref = collection(db, 'artifacts', appId, 'users', userId, 'expenses');
-                    await addDoc(ref, { desc, val, date: new Date() });
-                }
+            setTimeout(() => {
+                // Adicionar gasto ao estado
+                appState.expenses.unshift({ desc, val, date: new Date() });
+                saveLocalStorage();
                 
+                // Impacto visual
                 elements.surface.classList.remove('surface-impact');
                 elements.surface.offsetHeight; 
                 elements.surface.classList.add('surface-impact');
                 createRipple();
                 createSplashParticles(strength);
 
+                refreshUI();
+                renderHistory();
+
                 setTimeout(() => {
                     elements.sourceLiquid.style.height = '100%';
                     elements.fillBtn.disabled = false;
-                    document.getElementById('descInput').value = "";
+                    elements.descInput.value = "";
                 }, 400);
-            }, 640); 
-        }, 500); 
-    };
 
-    window.switchPage = (index) => {
-        currentPage = index;
-        elements.pages.style.transform = `translateX(-${index * 50}%)`;
-        elements.dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
-    };
+            }, 640); 
+
+        }, 500); 
+    }
 
     function renderHistory() {
-        if (expenses.length === 0) {
-            elements.list.innerHTML = `<p class="text-slate-400 text-center py-10 text-sm italic">O cofrinho ainda está limpo...</p>`;
+        if (appState.expenses.length === 0) {
+            elements.list.innerHTML = `<p class="text-slate-400 text-center py-10 text-sm italic">O cofrinho está limpo...</p>`;
             return;
         }
-        elements.list.innerHTML = expenses.map(e => `
+
+        elements.list.innerHTML = appState.expenses.map(e => `
             <div class="expense-item">
                 <div class="flex-1">
                     <div class="font-bold text-slate-700 text-sm">${e.desc}</div>
@@ -592,6 +534,8 @@
             </div>
         `).join('');
     }
+
+    // --- ANIMAÇÕES ---
 
     function createRipple() {
         const ripple = document.createElement('div');
@@ -618,19 +562,26 @@
         }
     }
 
-    // Swipes e Gestos
+    // --- NAVEGAÇÃO E TOUCH ---
+
+    window.switchPage = (index) => {
+        currentPage = index;
+        elements.pages.style.transform = `translateX(-${index * 50}%)`;
+        elements.dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+    };
+
     let touchStartX = 0;
     document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
     document.addEventListener('touchend', e => {
         let touchEndX = e.changedTouches[0].screenX;
-        if (touchStartX - touchEndX > 50 && currentPage === 0) switchPage(1);
-        if (touchEndX - touchStartX > 50 && currentPage === 1) switchPage(0);
+        if (touchStartX - touchEndX > 60 && currentPage === 0) switchPage(1);
+        if (touchEndX - touchStartX > 60 && currentPage === 1) switchPage(0);
     }, {passive: true});
 
     document.addEventListener('gesturestart', e => e.preventDefault());
 
-    // Iniciar
-    startApp();
+    // Inicialização
+    loadLocalStorage();
 </script>
 
 </body>
