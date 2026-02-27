@@ -16,7 +16,6 @@
             --source-height: 48vh;
         }
 
-        /* Bloqueio de Scroll e Zoom */
         html, body {
             background-color: var(--bg-soft);
             height: 100vh;
@@ -31,19 +30,17 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Removendo setas de inputs numéricos */
+        /* Remove setas de inputs numéricos */
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
-
         input[type=number] {
             -moz-appearance: textfield;
             appearance: textfield;
         }
 
-        /* Container de Páginas */
         .pages-container {
             display: flex;
             width: 200%;
@@ -59,7 +56,6 @@
             position: relative;
         }
 
-        /* Seção Superior Imersiva */
         .source-section {
             position: relative;
             height: var(--source-height);
@@ -100,12 +96,6 @@
             border: 1px solid rgba(255,255,255,0.5);
         }
 
-        .form-disappear {
-            transform: translateY(-130%) scale(0.8);
-            opacity: 0;
-        }
-
-        /* Gota Animada */
         .drop {
             position: absolute;
             top: var(--source-height); 
@@ -129,7 +119,6 @@
             100% { transform: translateX(-50%) scale(3, 0.2); top: calc(var(--source-height) + var(--drop-dist) + 5px); opacity: 0; filter: blur(2px); }
         }
 
-        /* Tanque */
         .tank-section {
             flex: 1;
             display: flex;
@@ -176,12 +165,11 @@
 
         @keyframes surface-wobble {
             0% { transform: translateY(23px) scaleY(1); }
-            20% { transform: translateY(calc(23px - (10px * var(--impact-strength)))) scaleY(calc(1 + (0.7 * var(--impact-strength)))); border-radius: 40% 40% 0 0; }
-            40% { transform: translateY(calc(23px + (10px * var(--impact-strength)))) scaleY(calc(1 + (1.2 * var(--impact-strength)))); border-radius: 40% 40% 0 0; }
+            20% { transform: translateY(calc(23px - (8px * var(--impact-strength)))) scaleY(calc(1 + (0.7 * var(--impact-strength)))); border-radius: 40% 40% 0 0; }
+            40% { transform: translateY(calc(23px + (8px * var(--impact-strength)))) scaleY(calc(1 + (1.2 * var(--impact-strength)))); border-radius: 40% 40% 0 0; }
             100% { transform: translateY(23px) scaleY(1); border-radius: 0; }
         }
 
-        /* RESUMO ANCORADO */
         .summary-anchor {
             position: fixed;
             bottom: 60px; 
@@ -196,7 +184,6 @@
             z-index: 50;
         }
 
-        /* PAGINATION DOTS */
         .pagination-nav {
             position: fixed;
             bottom: 0;
@@ -225,7 +212,6 @@
             border-radius: 10px;
         }
 
-        /* UI Estilo Mobile */
         input {
             background-color: white;
             border: 2px solid #eef2ff;
@@ -238,7 +224,7 @@
         }
 
         .limit-input-small {
-            width: 90px;
+            width: 100px;
             padding: 6px 10px;
             border-radius: 12px;
             font-size: 12px;
@@ -256,10 +242,7 @@
             margin-top: 10px;
         }
 
-        .btn-friendly:disabled {
-            background: #cbd5e1;
-            box-shadow: none;
-        }
+        .btn-friendly:disabled { opacity: 0.6; }
 
         .status-badge {
             padding: 0 10px;
@@ -301,7 +284,6 @@
             transition: opacity 0.5s;
         }
 
-        /* Efeitos de impacto */
         .ripple {
             position: absolute;
             top: 0;
@@ -315,7 +297,7 @@
 
         @keyframes ripple-out {
             0% { width: 0; height: 0; opacity: 1; }
-            100% { width: 120px; height: 25px; opacity: 0; }
+            100% { width: 130px; height: 25px; opacity: 0; }
         }
 
         .splash-particle {
@@ -337,13 +319,14 @@
 <div id="loadingOverlay" class="loading-overlay">
     <div class="flex flex-col items-center gap-3">
         <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
-        <p class="font-bold text-slate-400">Preparando cofrinho...</p>
+        <p id="loadingText" class="font-bold text-slate-400 text-center px-6">Preparando cofrinho...</p>
     </div>
 </div>
 
 <div id="drop" class="drop"></div>
 
 <div class="pages-container" id="pagesContainer">
+    <!-- PÁGINA 1 -->
     <div class="page" id="pageCofrinho">
         <div class="source-section">
             <div class="source-liquid-bg" id="sourceLiquid"></div>
@@ -372,7 +355,7 @@
             </div>
             
             <div class="flex items-end justify-center gap-2 mt-4 px-6 w-full">
-                <span id="warningBadge" class="status-badge bg-blue-100 text-blue-600">Carregando...</span>
+                <span id="warningBadge" class="status-badge bg-blue-100 text-blue-600">Sincronizando...</span>
                 <div class="flex flex-col">
                     <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1">Meta</p>
                     <input type="number" id="limitInput" value="1000" onchange="updateLimitFirestore()" class="limit-input-small">
@@ -381,13 +364,14 @@
         </div>
     </div>
 
+    <!-- PÁGINA 2 -->
     <div class="page" id="pageExtrato">
         <header class="p-6 pb-2 shrink-0">
             <h2 class="text-2xl font-bold text-slate-800">Extrato 📜</h2>
-            <p class="text-slate-500 text-sm">Histórico de pingos</p>
+            <p class="text-slate-500 text-sm">Suas movimentações</p>
         </header>
         <div class="history-scroll" id="expenseList">
-            <p class="text-slate-400 text-center py-10 text-sm italic">O cofrinho ainda está limpo...</p>
+            <p class="text-slate-400 text-center py-10 text-sm italic">Nenhum gasto ainda...</p>
         </div>
     </div>
 </div>
@@ -411,29 +395,24 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // Firebase Init
-    const firebaseConfig = JSON.parse(__firebase_config);
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'cofrinho-app';
-
-    // State
+    // Fallback variables
+    const firebaseConfig = JSON.parse(__firebase_config || '{}');
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-cofrinho';
+    
+    let db, auth;
     let limit = 1000;
     let spent = 0;
     let expenses = [];
     let userId = null;
     let currentPage = 0;
 
-    // DOM Elements
     const elements = {
         drop: document.getElementById('drop'),
         liquid: document.getElementById('liquidLevel'),
         surface: document.getElementById('surface'),
         sourceLiquid: document.getElementById('sourceLiquid'),
-        formCard: document.getElementById('formCard'),
         fillBtn: document.getElementById('fillBtn'),
         pages: document.getElementById('pagesContainer'),
         dots: [document.getElementById('dot0'), document.getElementById('dot1')],
@@ -449,63 +428,74 @@
     const tankHeight = 140; 
     const visualGap = 35;
 
-    // Auth logic
-    const initAuth = async () => {
+    // Timeout de segurança: se não carregar em 4s, libera a tela
+    const safetyTimeout = setTimeout(() => {
+        if (elements.loading.style.display !== 'none') {
+            console.warn("Safety timeout reached. Entering local mode.");
+            hideLoading();
+        }
+    }, 4000);
+
+    function hideLoading() {
+        elements.loading.style.opacity = '0';
+        setTimeout(() => elements.loading.style.display = 'none', 500);
+        clearTimeout(safetyTimeout);
+        refreshUI();
+    }
+
+    // Inicialização Protegida
+    async function startApp() {
         try {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                 await signInWithCustomToken(auth, __initial_auth_token);
             } else {
                 await signInAnonymously(auth);
             }
-        } catch (err) {
-            console.error("Auth error", err);
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    setupSync();
+                    hideLoading();
+                }
+            });
+        } catch (error) {
+            console.error("Firebase init failed:", error);
+            hideLoading(); // Libera para uso mesmo com erro
         }
-    };
+    }
 
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            userId = user.uid;
-            elements.loading.style.opacity = '0';
-            setTimeout(() => elements.loading.style.display = 'none', 500);
-            setupSync();
-        }
-    });
-
-    initAuth();
-
-    // Data Sync
     function setupSync() {
         if (!userId) return;
 
-        // Sync Settings (Limit)
-        const limitDocRef = doc(db, 'artifacts', appId, 'users', userId, 'settings', 'config');
-        onSnapshot(limitDocRef, (snap) => {
+        const limitRef = doc(db, 'artifacts', appId, 'users', userId, 'settings', 'config');
+        onSnapshot(limitRef, (snap) => {
             if (snap.exists()) {
                 limit = snap.data().limit || 1000;
                 elements.limitInput.value = limit;
                 refreshUI();
             } else {
-                setDoc(limitDocRef, { limit: 1000 });
+                setDoc(limitRef, { limit: 1000 });
             }
-        }, (err) => console.error("Limit sync error", err));
+        });
 
-        // Sync Expenses
-        const expensesColRef = collection(db, 'artifacts', appId, 'users', userId, 'expenses');
-        onSnapshot(expensesColRef, (snap) => {
+        const expensesRef = collection(db, 'artifacts', appId, 'users', userId, 'expenses');
+        onSnapshot(expensesRef, (snap) => {
             expenses = snap.docs.map(doc => ({
                 ...doc.data(),
                 date: doc.data().date?.toDate() || new Date()
-            }));
-            
-            expenses.sort((a, b) => b.date - a.date);
+            })).sort((a, b) => b.date - a.date);
             
             spent = expenses.reduce((acc, curr) => acc + curr.val, 0);
             refreshUI();
             renderHistory();
-        }, (err) => console.error("Expenses sync error", err));
+        });
     }
 
-    // UI Updates
     function refreshUI() {
         const percentage = (spent / limit) * 100;
         const available = Math.max(0, limit - spent);
@@ -513,7 +503,6 @@
         elements.totalText.innerText = `R$ ${spent.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
         elements.availableText.innerText = `R$ ${available.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
         elements.percText.innerText = `${Math.round(percentage)}%`;
-        
         elements.liquid.style.height = `${Math.min(100, percentage)}%`;
 
         if (percentage >= 100) {
@@ -531,13 +520,11 @@
         }
     }
 
-    // Persistence Actions
     window.updateLimitFirestore = async () => {
-        if (!userId) return;
         const newLimit = parseFloat(elements.limitInput.value);
-        if (newLimit > 0) {
-            const limitDocRef = doc(db, 'artifacts', appId, 'users', userId, 'settings', 'config');
-            await setDoc(limitDocRef, { limit: newLimit }, { merge: true });
+        if (newLimit > 0 && userId) {
+            const ref = doc(db, 'artifacts', appId, 'users', userId, 'settings', 'config');
+            await setDoc(ref, { limit: newLimit }, { merge: true });
         }
     };
 
@@ -545,7 +532,7 @@
         const desc = document.getElementById('descInput').value;
         const val = parseFloat(document.getElementById('valueInput').value);
 
-        if (!desc || isNaN(val) || val <= 0 || !userId) return;
+        if (!desc || isNaN(val) || val <= 0) return;
 
         elements.fillBtn.disabled = true;
         elements.sourceLiquid.style.height = '0%';
@@ -564,12 +551,10 @@
             elements.drop.style.animation = 'drop-realistic-fall 0.7s cubic-bezier(0.5, 0, 0.7, 0.3) forwards';
 
             setTimeout(async () => {
-                const expensesColRef = collection(db, 'artifacts', appId, 'users', userId, 'expenses');
-                await addDoc(expensesColRef, {
-                    desc,
-                    val,
-                    date: new Date()
-                });
+                if (userId) {
+                    const ref = collection(db, 'artifacts', appId, 'users', userId, 'expenses');
+                    await addDoc(ref, { desc, val, date: new Date() });
+                }
                 
                 elements.surface.classList.remove('surface-impact');
                 elements.surface.offsetHeight; 
@@ -582,13 +567,10 @@
                     elements.fillBtn.disabled = false;
                     document.getElementById('descInput').value = "";
                 }, 400);
-
             }, 640); 
-
         }, 500); 
     };
 
-    // Navigation and Helpers
     window.switchPage = (index) => {
         currentPage = index;
         elements.pages.style.transform = `translateX(-${index * 50}%)`;
@@ -600,18 +582,13 @@
             elements.list.innerHTML = `<p class="text-slate-400 text-center py-10 text-sm italic">O cofrinho ainda está limpo...</p>`;
             return;
         }
-
         elements.list.innerHTML = expenses.map(e => `
             <div class="expense-item">
                 <div class="flex-1">
                     <div class="font-bold text-slate-700 text-sm">${e.desc}</div>
-                    <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
-                        ${e.date.toLocaleDateString('pt-BR')} • ${e.date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}
-                    </div>
+                    <div class="text-[9px] text-slate-400 font-bold uppercase mt-0.5">${e.date.toLocaleDateString('pt-BR')}</div>
                 </div>
-                <div class="font-bold text-slate-600 text-sm">
-                    - R$ ${e.val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-                </div>
+                <div class="font-bold text-slate-600 text-sm">- R$ ${e.val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
             </div>
         `).join('');
     }
@@ -641,16 +618,21 @@
         }
     }
 
+    // Swipes e Gestos
     let touchStartX = 0;
-    document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX);
+    document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
     document.addEventListener('touchend', e => {
         let touchEndX = e.changedTouches[0].screenX;
         if (touchStartX - touchEndX > 50 && currentPage === 0) switchPage(1);
         if (touchEndX - touchStartX > 50 && currentPage === 1) switchPage(0);
-    });
+    }, {passive: true});
 
     document.addEventListener('gesturestart', e => e.preventDefault());
+
+    // Iniciar
+    startApp();
 </script>
 
 </body>
 </html>
+
