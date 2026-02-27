@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Meu Cofrinho Líquido</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --liquid-color: #60a5fa;
+            --liquid-wave: rgba(255, 255, 255, 0.4);
+            --impact-strength: 1; 
+            --bg-soft: #fdfdfd;
+            --accent-friendly: #6366f1;
+            --source-height: 48vh;
+        }
+
+        /* Bloqueio de Scroll e Zoom */
+        html, body {
+            background-color: var(--bg-soft);
+            height: 100vh;
+            width: 100vw;
+            font-family: 'Quicksand', sans-serif;
+            color: #475569;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            position: fixed;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Removendo setas de inputs numéricos */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        /* Container de Páginas */
+        .pages-container {
+            display: flex;
+            width: 200%;
+            height: 100%;
+            transition: transform 0.4s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        .page {
+            width: 50%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Seção Superior Imersiva */
+        .source-section {
+            position: relative;
+            height: var(--source-height);
+            width: 100%;
+            background: #f1f5f9;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0 0 40px 40px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+            z-index: 20;
+            flex-shrink: 0;
+        }
+
+        .source-liquid-bg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--liquid-color);
+            z-index: 1;
+            transition: height 0.6s cubic-bezier(0.45, 0, 0.55, 1);
+        }
+
+        .form-card {
+            position: relative;
+            z-index: 10;
+            width: 85%;
+            max-width: 320px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 28px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.4s;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .form-disappear {
+            transform: translateY(-130%) scale(0.8);
+            opacity: 0;
+        }
+
+        /* Gota Animada */
+        .drop {
+            position: absolute;
+            top: var(--source-height); 
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            background: var(--liquid-color);
+            border-radius: 50%;
+            transform: translateX(-50%) scale(0);
+            opacity: 0;
+            z-index: 15;
+            pointer-events: none;
+            transform-origin: top center;
+        }
+
+        @keyframes drop-realistic-fall {
+            0% { transform: translateX(-50%) scale(0); opacity: 0; }
+            20% { transform: translateX(-50%) scale(1.3, 0.7); opacity: 1; top: calc(var(--source-height) - 10px); }
+            40% { transform: translateX(-50%) scale(0.6, 2); opacity: 1; top: calc(var(--source-height) - 5px); }
+            95% { transform: translateX(-50%) scale(0.9, 1.1); top: calc(var(--source-height) + var(--drop-dist)); opacity: 1; }
+            100% { transform: translateX(-50%) scale(3, 0.2); top: calc(var(--source-height) + var(--drop-dist) + 5px); opacity: 0; filter: blur(2px); }
+        }
+
+        /* Tanque */
+        .tank-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 120px; 
+        }
+
+        .tank {
+            width: 140px;
+            height: 140px;
+            border: 6px solid #e2e8f0;
+            position: relative;
+            border-radius: 20px 20px 45px 45px;
+            background: #fff;
+            overflow: hidden;
+            z-index: 5;
+            flex-shrink: 0;
+        }
+
+        .liquid-level {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background: var(--liquid-color);
+            transition: height 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .surface-wave {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: var(--liquid-color);
+            transform: translateY(23px);
+            transform-origin: center bottom;
+        }
+
+        .surface-impact { animation: surface-wobble 0.8s ease-out forwards; }
+
+        @keyframes surface-wobble {
+            0% { transform: translateY(23px) scaleY(1); }
+            20% { transform: translateY(calc(23px - (10px * var(--impact-strength)))) scaleY(calc(1 + (0.7 * var(--impact-strength)))); border-radius: 40% 40% 0 0; }
+            40% { transform: translateY(calc(23px + (10px * var(--impact-strength)))) scaleY(calc(1 + (1.2 * var(--impact-strength)))); border-radius: 40% 40% 0 0; }
+            100% { transform: translateY(23px) scaleY(1); border-radius: 0; }
+        }
+
+        /* RESUMO ANCORADO */
+        .summary-anchor {
+            position: fixed;
+            bottom: 60px; 
+            left: 0;
+            width: 100%;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(253, 253, 253, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 50;
+        }
+
+        /* PAGINATION DOTS */
+        .pagination-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            background: transparent;
+            z-index: 100;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background: var(--accent-friendly);
+            width: 24px;
+            border-radius: 10px;
+        }
+
+        /* UI Estilo Mobile */
+        input {
+            background-color: white;
+            border: 2px solid #eef2ff;
+            border-radius: 14px;
+            padding: 8px 12px;
+            font-size: 16px;
+            width: 100%;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .limit-input-small {
+            width: 90px;
+            padding: 6px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            height: 34px;
+        }
+
+        .btn-friendly {
+            background: var(--accent-friendly);
+            color: white;
+            padding: 12px;
+            border-radius: 16px;
+            font-weight: 700;
+            width: 100%;
+            border: none;
+            margin-top: 10px;
+        }
+
+        .btn-friendly:disabled {
+            background: #cbd5e1;
+            box-shadow: none;
+        }
+
+        .status-badge {
+            padding: 0 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            height: 34px;
+            display: flex;
+            align-items: center;
+        }
+
+        .history-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 20px 140px; 
+            touch-action: pan-y;
+        }
+
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: white;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            border: 1px solid #f1f5f9;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-soft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            transition: opacity 0.5s;
+        }
+
+        /* Efeitos de impacto */
+        .ripple {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 3px solid var(--liquid-wave);
+            border-radius: 50%;
+            opacity: 0;
+            z-index: 5;
+        }
+
+        @keyframes ripple-out {
+            0% { width: 0; height: 0; opacity: 1; }
+            100% { width: 120px; height: 25px; opacity: 0; }
+        }
+
+        .splash-particle {
+            position: absolute;
+            background: var(--liquid-color);
+            border-radius: 50%;
+            opacity: 0;
+            z-index: 15;
+        }
+
+        @keyframes splash-jump {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="flex flex-col items-center gap-3">
+        <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+        <p class="font-bold text-slate-400">Preparando cofrinho...</p>
+    </div>
+</div>
+
+<div id="drop" class="drop"></div>
+
+<div class="pages-container" id="pagesContainer">
+    <div class="page" id="pageCofrinho">
+        <div class="source-section">
+            <div class="source-liquid-bg" id="sourceLiquid"></div>
+            <div class="form-card" id="formCard">
+                <h1 class="text-base font-bold mb-2 text-center text-slate-800">Registrar Gasto 🫧</h1>
+                <div class="mb-2">
+                    <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest ml-1">Descrição</p>
+                    <input type="text" id="descInput" placeholder="O que foi?">
+                </div>
+                <div class="mb-1">
+                    <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest ml-1">Valor (R$)</p>
+                    <input type="number" id="valueInput" value="30">
+                </div>
+                <button id="fillBtn" class="btn-friendly" onclick="registerExpense()">Soltar Gota</button>
+            </div>
+        </div>
+
+        <div class="tank-section">
+            <div class="tank">
+                <div id="liquidLevel" class="liquid-level">
+                    <div id="surface" class="surface-wave"></div>
+                </div>
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                    <div id="percentageText" class="text-2xl font-black text-slate-800 opacity-10">0%</div>
+                </div>
+            </div>
+            
+            <div class="flex items-end justify-center gap-2 mt-4 px-6 w-full">
+                <span id="warningBadge" class="status-badge bg-blue-100 text-blue-600">Carregando...</span>
+                <div class="flex flex-col">
+                    <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1">Meta</p>
+                    <input type="number" id="limitInput" value="1000" onchange="updateLimitFirestore()" class="limit-input-small">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page" id="pageExtrato">
+        <header class="p-6 pb-2 shrink-0">
+            <h2 class="text-2xl font-bold text-slate-800">Extrato 📜</h2>
+            <p class="text-slate-500 text-sm">Histórico de pingos</p>
+        </header>
+        <div class="history-scroll" id="expenseList">
+            <p class="text-slate-400 text-center py-10 text-sm italic">O cofrinho ainda está limpo...</p>
+        </div>
+    </div>
+</div>
+
+<div class="summary-anchor">
+    <div class="text-center">
+        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Total Gasto</p>
+        <p class="font-bold text-blue-500 text-sm" id="totalSpentText">R$ 0,00</p>
+    </div>
+    <div class="text-center">
+        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Saldo Livre</p>
+        <p class="font-bold text-emerald-500 text-sm" id="availableText">R$ 0,00</p>
+    </div>
+</div>
+
+<nav class="pagination-nav">
+    <div class="dot active" id="dot0" onclick="switchPage(0)"></div>
+    <div class="dot" id="dot1" onclick="switchPage(1)"></div>
+</nav>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Firebase Init
+    const firebaseConfig = JSON.parse(__firebase_config);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'cofrinho-app';
+
+    // State
+    let limit = 1000;
+    let spent = 0;
+    let expenses = [];
+    let userId = null;
+    let currentPage = 0;
+
+    // DOM Elements
+    const elements = {
+        drop: document.getElementById('drop'),
+        liquid: document.getElementById('liquidLevel'),
+        surface: document.getElementById('surface'),
+        sourceLiquid: document.getElementById('sourceLiquid'),
+        formCard: document.getElementById('formCard'),
+        fillBtn: document.getElementById('fillBtn'),
+        pages: document.getElementById('pagesContainer'),
+        dots: [document.getElementById('dot0'), document.getElementById('dot1')],
+        limitInput: document.getElementById('limitInput'),
+        totalText: document.getElementById('totalSpentText'),
+        availableText: document.getElementById('availableText'),
+        percText: document.getElementById('percentageText'),
+        badge: document.getElementById('warningBadge'),
+        list: document.getElementById('expenseList'),
+        loading: document.getElementById('loadingOverlay')
+    };
+
+    const tankHeight = 140; 
+    const visualGap = 35;
+
+    // Auth logic
+    const initAuth = async () => {
+        try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+        } catch (err) {
+            console.error("Auth error", err);
+        }
+    };
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            userId = user.uid;
+            elements.loading.style.opacity = '0';
+            setTimeout(() => elements.loading.style.display = 'none', 500);
+            setupSync();
+        }
+    });
+
+    initAuth();
+
+    // Data Sync
+    function setupSync() {
+        if (!userId) return;
+
+        // Sync Settings (Limit)
+        const limitDocRef = doc(db, 'artifacts', appId, 'users', userId, 'settings', 'config');
+        onSnapshot(limitDocRef, (snap) => {
+            if (snap.exists()) {
+                limit = snap.data().limit || 1000;
+                elements.limitInput.value = limit;
+                refreshUI();
+            } else {
+                setDoc(limitDocRef, { limit: 1000 });
+            }
+        }, (err) => console.error("Limit sync error", err));
+
+        // Sync Expenses
+        const expensesColRef = collection(db, 'artifacts', appId, 'users', userId, 'expenses');
+        onSnapshot(expensesColRef, (snap) => {
+            expenses = snap.docs.map(doc => ({
+                ...doc.data(),
+                date: doc.data().date?.toDate() || new Date()
+            }));
+            
+            expenses.sort((a, b) => b.date - a.date);
+            
+            spent = expenses.reduce((acc, curr) => acc + curr.val, 0);
+            refreshUI();
+            renderHistory();
+        }, (err) => console.error("Expenses sync error", err));
+    }
+
+    // UI Updates
+    function refreshUI() {
+        const percentage = (spent / limit) * 100;
+        const available = Math.max(0, limit - spent);
+
+        elements.totalText.innerText = `R$ ${spent.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        elements.availableText.innerText = `R$ ${available.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        elements.percText.innerText = `${Math.round(percentage)}%`;
+        
+        elements.liquid.style.height = `${Math.min(100, percentage)}%`;
+
+        if (percentage >= 100) {
+            elements.badge.innerText = "Meta atingida! 🛑";
+            elements.badge.className = "status-badge bg-rose-100 text-rose-600";
+            document.documentElement.style.setProperty('--liquid-color', '#fb7185');
+        } else if (percentage >= 80) {
+            elements.badge.innerText = "Quase lá! ⚠️";
+            elements.badge.className = "status-badge bg-amber-100 text-amber-600";
+            document.documentElement.style.setProperty('--liquid-color', '#fbbf24');
+        } else {
+            elements.badge.innerText = "No verde! ✨";
+            elements.badge.className = "status-badge bg-blue-100 text-blue-600";
+            document.documentElement.style.setProperty('--liquid-color', '#60a5fa');
+        }
+    }
+
+    // Persistence Actions
+    window.updateLimitFirestore = async () => {
+        if (!userId) return;
+        const newLimit = parseFloat(elements.limitInput.value);
+        if (newLimit > 0) {
+            const limitDocRef = doc(db, 'artifacts', appId, 'users', userId, 'settings', 'config');
+            await setDoc(limitDocRef, { limit: newLimit }, { merge: true });
+        }
+    };
+
+    window.registerExpense = async () => {
+        const desc = document.getElementById('descInput').value;
+        const val = parseFloat(document.getElementById('valueInput').value);
+
+        if (!desc || isNaN(val) || val <= 0 || !userId) return;
+
+        elements.fillBtn.disabled = true;
+        elements.sourceLiquid.style.height = '0%';
+
+        setTimeout(async () => {
+            const currentPercentage = (spent / limit) * 100;
+            const currentHeightPx = (tankHeight * Math.min(100, currentPercentage)) / 100;
+            const dropDistValue = visualGap + (tankHeight - currentHeightPx);
+            
+            const strength = Math.min(2.0, (val / limit) * 15);
+            document.documentElement.style.setProperty('--impact-strength', strength);
+            document.documentElement.style.setProperty('--drop-dist', `${dropDistValue}px`);
+
+            elements.drop.style.animation = 'none';
+            elements.drop.offsetHeight; 
+            elements.drop.style.animation = 'drop-realistic-fall 0.7s cubic-bezier(0.5, 0, 0.7, 0.3) forwards';
+
+            setTimeout(async () => {
+                const expensesColRef = collection(db, 'artifacts', appId, 'users', userId, 'expenses');
+                await addDoc(expensesColRef, {
+                    desc,
+                    val,
+                    date: new Date()
+                });
+                
+                elements.surface.classList.remove('surface-impact');
+                elements.surface.offsetHeight; 
+                elements.surface.classList.add('surface-impact');
+                createRipple();
+                createSplashParticles(strength);
+
+                setTimeout(() => {
+                    elements.sourceLiquid.style.height = '100%';
+                    elements.fillBtn.disabled = false;
+                    document.getElementById('descInput').value = "";
+                }, 400);
+
+            }, 640); 
+
+        }, 500); 
+    };
+
+    // Navigation and Helpers
+    window.switchPage = (index) => {
+        currentPage = index;
+        elements.pages.style.transform = `translateX(-${index * 50}%)`;
+        elements.dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+    };
+
+    function renderHistory() {
+        if (expenses.length === 0) {
+            elements.list.innerHTML = `<p class="text-slate-400 text-center py-10 text-sm italic">O cofrinho ainda está limpo...</p>`;
+            return;
+        }
+
+        elements.list.innerHTML = expenses.map(e => `
+            <div class="expense-item">
+                <div class="flex-1">
+                    <div class="font-bold text-slate-700 text-sm">${e.desc}</div>
+                    <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+                        ${e.date.toLocaleDateString('pt-BR')} • ${e.date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                </div>
+                <div class="font-bold text-slate-600 text-sm">
+                    - R$ ${e.val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function createRipple() {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        ripple.style.animation = 'ripple-out 0.6s ease-out forwards';
+        elements.liquid.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+    }
+
+    function createSplashParticles(strength) {
+        const count = Math.floor(6 + (strength * 12));
+        for (let i = 0; i < count; i++) {
+            const p = document.createElement('div');
+            p.className = 'splash-particle';
+            const size = Math.random() * (3 * strength) + 2.5;
+            const dx = (Math.random() - 0.5) * (180 * strength);
+            const dy = -Math.random() * (100 * strength) - 30;
+            p.style.width = `${size}px`; p.style.height = `${size}px`;
+            p.style.left = '50%'; p.style.top = '0';
+            p.style.setProperty('--dx', `${dx}px`); p.style.setProperty('--dy', `${dy}px`);
+            p.style.animation = `splash-jump 0.5s ease-out forwards`;
+            elements.liquid.appendChild(p);
+            setTimeout(() => p.remove(), 500);
+        }
+    }
+
+    let touchStartX = 0;
+    document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX);
+    document.addEventListener('touchend', e => {
+        let touchEndX = e.changedTouches[0].screenX;
+        if (touchStartX - touchEndX > 50 && currentPage === 0) switchPage(1);
+        if (touchEndX - touchStartX > 50 && currentPage === 1) switchPage(0);
+    });
+
+    document.addEventListener('gesturestart', e => e.preventDefault());
+</script>
+
+</body>
+</html>
